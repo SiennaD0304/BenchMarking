@@ -7,4 +7,4 @@ test/test-data/
 *.h5
 
 # Python bytecode, created when the scripts import config/config.py
-__pycache__/
+config/__pycache__/
