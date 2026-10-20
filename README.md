@@ -15,7 +15,7 @@ If mamba is not supported or unable to be installed all environments can be crea
 
 Clone Repo: 
 ```
-git clone [REPO_URL]
+git clone https://github.com/SiennaD0304/BenchMarking.git 
 cd ortho-benchmark
 ```
 Create Conda environments. The environments are needed to run each of the ortholog tools. These environments are all created using .yml files. 
