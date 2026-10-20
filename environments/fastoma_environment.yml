@@ -1,0 +1,29 @@
+# FastOMA — reference-guided hierarchical orthology inference.
+#
+# Nextflow-based, so Java is required alongside the Python package.
+# FastOMA is installed via pip (see the pip: block below) rather than conda.
+#
+# ACTION REQUIRED after env creation: download the OMAmer reference database.
+# FastOMA maps input proteins to existing OMA HOGs, so the database version
+# must be recorded — it affects results and is a documented confound in this
+# project (see README open issues).
+#
+# pyham is included for parsing the OrthoXML output in 04_parse_outputs.py.
+name: fastoma
+channels:
+  - conda-forge
+  - bioconda
+  - defaults
+dependencies:
+  - python=3.10
+  - nextflow>=23.04
+  - openjdk>=17
+  - mafft
+  - fasttree
+  - numpy
+  - scipy
+  - pip
+  - pip:
+      - FastOMA
+      - omamer
+      - pyham

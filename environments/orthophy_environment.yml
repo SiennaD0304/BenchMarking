@@ -1,0 +1,27 @@
+# OrthoPhy — similarity clustering with taxonomy/tree-conflict paralog filtering.
+#
+# Installed from source rather than conda; this env provides its dependencies.
+# OrthoPhy requires taxonomic information as auxiliary input (see config.sh
+# TAXONOMY) and is the only tool here that uses taxonomy as a filtering
+# constraint rather than a scaffold.
+#
+# OPEN ISSUE: it is not yet confirmed whether OrthoPhy writes per-group gene
+# trees to disk or consumes them internally. See README open issues; fallback
+# tool is SonicParanoid2.
+name: orthophy
+channels:
+  - conda-forge
+  - bioconda
+  - defaults
+dependencies:
+  - python=3.10
+  - perl                 # several OrthoPhy helper scripts are Perl
+  - blast
+  - diamond
+  - mafft
+  - trimal
+  - fasttree
+  - raxml
+  - biopython
+  - numpy
+  - git

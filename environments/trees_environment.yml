@@ -1,0 +1,28 @@
+# Shared downstream pipeline — NOT a tool under test.
+#
+# Every tool's group memberships are passed through this one identical chain
+# (MAFFT L-INS-i -> ClipKit -> IQ-TREE/ModelFinder) so that topological
+# differences are attributable to orthology inference rather than to the
+# tools' differing internal aligners and tree methods.
+#
+# Also holds the analysis dependencies for metrics and tree comparison.
+name: treepipe
+channels:
+  - conda-forge
+  - bioconda
+  - defaults
+dependencies:
+  - python=3.11
+  - mafft>=7.520
+  - clipkit
+  - trimal
+  - iqtree>=2.2.0
+  - seqkit                # used by 01_prep_input.sh
+  - ete3                  # tree parsing and RF distance
+  - dendropy              # quartet / additional topological distances
+  - scikit-learn          # adjusted Rand index for inter-tool agreement
+  - pandas
+  - numpy
+  - scipy
+  - matplotlib
+  - seaborn

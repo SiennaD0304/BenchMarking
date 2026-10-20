@@ -1,0 +1,19 @@
+# OrthoFinder v3 — de novo orthology inference.
+# Needs no auxiliary input; serves as the project's baseline.
+# mafft/fasttree/iqtree are OrthoFinder's own -A and -T backends and must be present in this env, separate from the shared downstream tree pipeline.
+name: of3
+channels:
+  - conda-forge
+  - bioconda
+  - defaults
+dependencies:
+  - python=3.10
+  - orthofinder>=3.0
+  - diamond>=2.1.8
+  - blast
+  - mcl
+  - mafft>=7.520
+  - fasttree>=2.1.11
+  - iqtree>=2.2.0
+  - scipy
+  - numpy

@@ -1,0 +1,13 @@
+# Broccoli v2 — Rust reimplementation of v1.2 (Python).
+# Same four steps, same parameters, same output files, single binary.
+# Bioconda pulls DIAMOND and FastTree as dependencies.
+#
+# NOTE: all published Broccoli benchmarks used v1.2. v2's equivalence is
+# claimed by the author but not independently verified — see README open issues.
+name: broccoli
+channels:
+  - conda-forge
+  - bioconda
+  - defaults
+dependencies:
+  - broccoli
