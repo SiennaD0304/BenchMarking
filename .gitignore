@@ -1,0 +1,9 @@
+# Source-installed OrthoPhy, cloned during installation
+tools/
+
+# OMAmer database, downloaded during installation (9.3 GB; GitHub's limit is
+# 100 MB per file). Matches LUCA.h5 before and omamerdb.h5 after renaming.
+*.h5
+
+# Python bytecode, created when the scripts import config/config.py
+__pycache__/
