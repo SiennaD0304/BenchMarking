@@ -59,11 +59,12 @@ conda run -n orthophy python tools/OrthoPhy/OrthoPhy.py --help | head -10
 conda run -n treepipe iqtree2 --version
 ```
 
-To verify if the tools run on test data and ensure that all dependancies were installed correctly, the python script test_tools.py was used. This script checks that all directories present contain a file, and produce an output using a series of pass fail tests on a very small set of known protein orthologs. You must be be in the main folder to run the following commands 
+To verify if the tools run on test data and ensure that all dependancies were installed correctly, the python scripts test_tools.py and get_test_data.py were used. Get_test_data.py is used to pull a small set of known protein orthologs for testing. Test_tools.py checks that all directories present contain a file, and produce an output using a series of pass fail tests on the pulled ortholog set. You must be be in the main folder to run the following commands 
 ```
 #email is needed because fasta files are being pulled from NCBI
 python test/test-scripts/get_test_data.py -e user@email.com
 
+#prep inputs makes sure the inputs are only fasta files
 python test/test-scripts/prep_inputs.py -i test/test-data/test_raw -o test/test-data/prepped
 
 #this command will test all of the tools
