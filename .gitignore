@@ -8,3 +8,5 @@ test/test-data/
 
 # Python bytecode, created when the scripts import config/config.py
 config/__pycache__/
+
+data/
