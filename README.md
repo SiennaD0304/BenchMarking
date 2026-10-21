@@ -47,7 +47,7 @@ cd data
 wget https://omabrowser.org/All/LUCA.h5 &
 ```
 
-# Testing Tools 
+# Testing Tools with Practice Dataset
 
 To verify if the tools were installed 
 ```
@@ -71,6 +71,11 @@ python test/test-scripts/test_tools.py -i test/test-data/prepped -o results/test
 
 #if the previous command fails you can test individual tools as well
 python test/test-scripts/test_tools.py -i test/test-data/prepped -o results/test-data -t (insert tool name here)
+```
+
+# Results of Testing Data
+A successful run of the script test_tools.py will allow for OrthoFinder, Broccoli and FastOMA to pass all tests. However, OrthoPhy will not pass. This is due to the very small sample size used for the test. OrthoPhy normalizes ortholog groups to increase the tool's speed, causing the very small sample size to result in no output. However, because OrthoPhy runs as an updated version of OrthoFinder if OrthoFinder passes then OrthoPhy will as well with a larger dataset. 
+
 
 
 
