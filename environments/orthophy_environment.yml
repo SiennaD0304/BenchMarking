@@ -36,6 +36,8 @@ dependencies:
   - fasttree            # gene tree reconstruction
   - iqtree              # used by --accurate for the concatenated tree
   - raxml
+  - seqkit              # sequence handling; checked at startup
+  - iqtree=2            # OrthoPhy calls the iqtree2 binary by name; IQ-TREE 3 installs iqtree3
 
   # Optional --hgt prediction (IslandPath-DIMOB) needs Perl and BioPerl.
   # This project does not use --hgt.

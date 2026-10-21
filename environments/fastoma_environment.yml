@@ -24,6 +24,6 @@ dependencies:
   - scipy
   - pip
   - pip:
-      - FastOMA
+      - FastOMA[report]
       - omamer
       - pyham
