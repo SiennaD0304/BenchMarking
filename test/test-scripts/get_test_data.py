@@ -1,6 +1,6 @@
 """
 Pulls the entire installation test dataset from NCBI, so nothing needs to be
-downloaded manually.
+downloaded by hand.
 
 WHY THE INSTALLATION TEST ISN'T SIMPLER
 A single gene with one copy per species does not ensure that every part of every
@@ -45,7 +45,7 @@ import urllib.request
 # Scripts live in test/test-scripts/; config.py lives in config/. Both sit
 # inside the project root (bench/), so config is two directories up.
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", "config"))
-import config
+import config  # noqa: E402
 
 EUTILS = "https://eutils.ncbi.nlm.nih.gov/entrez/eutils"
 
@@ -78,13 +78,30 @@ SEED_ACCESSIONS = {
 FAMILIES = {
     "phosducin": ["PDC", "PDCL", "PDCL2", "PDCL3", "TXNDC9",
                   "PLP1", "PLP2", "phosducin-like"],
-    "thioredoxin": ["TXN", "TXN2", "TXNL1", "TRX1", "TRX2"],
+    "thioredoxin": ["TXN", "TXN2", "TXNL1", "TRX1", "TRX2",
+                    "trx-1", "trx-2", "trx-3"],                  # C. elegans
     "14-3-3": ["YWHAB", "YWHAE", "YWHAZ", "YWHAG", "YWHAH", "YWHAQ",
-               "SFN", "BMH1", "BMH2", "14-3-3"],
-    "actin": ["ACTB", "ACTG1", "ACT1", "ACT5C", "act-1"],
+               "SFN", "BMH1", "BMH2", "14-3-3",
+               "par-5", "ftt-2"],                                # C. elegans
+    "actin": ["ACTB", "ACTG1", "ACT1", "ACT5C",
+              "act-1", "act-2", "act-3", "act-4", "act-5"],      # C. elegans
 }
 
-# Function to call NCBI E-utilities with retries and rate limiting
+# Protein-name fallback, used only when every symbol search for a family
+# returns nothing for a species. Plasmodium genes carry locus tags
+# (PBANKA_...) rather than symbols, so symbol search alone finds none of them.
+# NOT clauses keep related-but-different proteins out of each family.
+FAMILY_TITLES = {
+    "phosducin": '"phosducin"[Title]',
+    "thioredoxin": '"thioredoxin"[Title] NOT "domain-containing"[Title] '
+                   'NOT "reductase"[Title] NOT "peroxidase"[Title]',
+    "14-3-3": '"14-3-3"[Title]',
+    "actin": '"actin"[Title] NOT "actin-related"[Title] NOT "binding"[Title] '
+             'NOT "depolymerizing"[Title]',
+}
+
+
+# Function to call an NCBI E-utilities endpoint with retries and rate limiting
 def eutils(endpoint, params, email, retries=3):
     params = dict(params)
     params["email"] = email
@@ -103,15 +120,20 @@ def eutils(endpoint, params, email, retries=3):
             time.sleep(0.4)      # NCBI: max 3 requests/sec without an API key
     return ""
 
-# Function to search the protein database for one gene symbol in one organism
-def search_protein(symbol, organism, email, retmax):
+
+# Function to search the protein database within one organism
+# `term` is either a gene symbol (searched as [Gene Name]) or, for the
+# fallback, a ready-made protein-name clause from FAMILY_TITLES.
+def search_protein(term, organism, email, retmax, by_title=False):
     # refseq filter keeps results curated; without it a search returns many
     # near-duplicate submissions that inflate the test set
-    query = f'{symbol}[Gene Name] AND "{organism}"[Organism] AND refseq[filter]'
+    field = f"({term})" if by_title else f"{term}[Gene Name]"
+    query = f'{field} AND "{organism}"[Organism] AND refseq[filter]'
     xml = eutils("esearch", {"db": "protein", "term": query,
                              "retmax": retmax, "retmode": "xml"}, email)
     return [line.strip()[4:-5] for line in xml.splitlines()
             if line.strip().startswith("<Id>")]
+
 
 # Function to download protein sequences in FASTA format by UID or accession
 def fetch_fasta(ids, email):
@@ -120,7 +142,8 @@ def fetch_fasta(ids, email):
     return eutils("efetch", {"db": "protein", "id": ",".join(ids),
                              "rettype": "fasta", "retmode": "text"}, email)
 
-# Function to split FASTA into (accession, record) pairs
+
+# Function to split a FASTA blob into (accession, record) pairs
 def split_records(fasta):
     out = []
     for block in fasta.split("\n>"):
@@ -132,35 +155,51 @@ def split_records(fasta):
         out.append((block[1:].split()[0], block))
     return out
 
+
 # Function to tag a record's header with the family it came from
 def tag_family(record, family):
     header, _, body = record.partition("\n")
     return f"{header} [family={family}]\n{body}"
 
+
 # Function to collect every record for one species
 def fetch_species(tag, organism, families, email, max_per_gene):
     records, seen = [], set()
+
+    # Seed accessions first, so they are present regardless of search results
     for acc, record in split_records(fetch_fasta(SEED_ACCESSIONS[tag], email)):
         if acc not in seen:
             seen.add(acc)
             records.append(tag_family(record, "phosducin"))
     seed_n = len(records)
+
+    # Function to fetch a list of UIDs and keep only records not already seen
+    def add_hits(uids, family):
+        for acc, record in split_records(fetch_fasta(uids, email)):
+            if acc in seen:        # aliases and searches overlap; dedupe
+                continue
+            seen.add(acc)
+            records.append(tag_family(record, family))
+
     counts = {}
     for family in families:
         before = len(records)
         for symbol in FAMILIES[family]:
             uids = search_protein(symbol, organism, email, max_per_gene)
-            if not uids:
-                continue
-            for acc, record in split_records(fetch_fasta(uids, email)):
-                if acc in seen:
-                    continue
-                seen.add(acc)
-                records.append(tag_family(record, family))
+            if uids:
+                add_hits(uids, family)
+        # Symbols found nothing for this species: search by protein name
+        if len(records) == before:
+            uids = search_protein(FAMILY_TITLES[family], organism, email,
+                                  max_per_gene, by_title=True)
+            if uids:
+                add_hits(uids, family)
         counts[family] = len(records) - before
+
     return records, seed_n, counts
 
-# Function to retrieve command line arguments
+
+# Function to validate command line arguments
 def check_args():
     parser = argparse.ArgumentParser(
         description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
@@ -176,31 +215,44 @@ def check_args():
                         help="cap hits per gene symbol per species (default: 5)")
     return parser.parse_args()
 
+
 # Function to fetch every species and write per-species FASTA files
 def main(args):
     config.ensure_dirs()
     os.makedirs(args.output, exist_ok=True)
+
     header = f"{'species':<8} {'seed':>5}" + "".join(
         f" {f:>12}" for f in args.families) + f" {'total':>7}"
     print(header)
     print("-" * len(header))
-    total = 0
+
+    grand_total = 0
     for tag, organism in SPECIES.items():
         records, seed_n, counts = fetch_species(
             tag, organism, args.families, args.email, args.max_per_gene)
+
         with open(os.path.join(args.output, f"{tag}.fa"), "w") as fh:
             fh.write("\n".join(records) + "\n")
+
         row = f"{tag:<8} {seed_n:>5}" + "".join(
             f" {counts[f]:>12}" for f in args.families) + f" {len(records):>7}"
         print(row)
-        total += len(records)
+        grand_total += len(records)
+
     print("-" * len(header))
-    print(f"{total} sequences written to {args.output}")
-    if total < 40:
+    print(f"{grand_total} sequences written to {args.output}")
+
+    if grand_total < 40:
         print("\n[warn] Fewer sequences than expected. Anolis sagrei and "
               "Plasmodium berghei are thinly annotated and may not respond to "
               "gene-symbol search; consider substituting Anolis carolinensis, "
               "or adding accessions to SEED_ACCESSIONS by hand.")
+
+    # Paths shown relative to bench/, where every command is run
+    rel = lambda p: os.path.relpath(p, config.PROJECT_ROOT)
+    print(f"\nNext: python test/test-scripts/prep_inputs.py "
+          f"-i {rel(args.output)} -o {rel(config.TEST_DIR)}")
+
 
 if __name__ == "__main__":
     main(check_args())
