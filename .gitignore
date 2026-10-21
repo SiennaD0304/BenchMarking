@@ -10,3 +10,4 @@ test/test-data/
 config/__pycache__/
 
 data/
+results/
