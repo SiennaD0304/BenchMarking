@@ -1,27 +1,42 @@
 # OrthoPhy — similarity clustering with taxonomy/tree-conflict paralog filtering.
 #
-# Installed from source rather than conda; this env provides its dependencies.
-# OrthoPhy requires taxonomic information as auxiliary input (see config.sh
-# TAXONOMY) and is the only tool here that uses taxonomy as a filtering
-# constraint rather than a scaffold.
+# OrthoPhy is installed from source (github.com/tmakwtnb/OrthoPhy) into
+# tools/OrthoPhy; this env provides everything it needs to run. It ships no
+# dependency list of its own, so the Python packages below come from its
+# import statements and the programs from the steps it performs.
 #
-# OPEN ISSUE: it is not yet confirmed whether OrthoPhy writes per-group gene
-# trees to disk or consumes them internally. See README open issues; fallback
-# tool is SonicParanoid2.
+# Taxonomy is read from the DIRECTORY NESTING of --indir (species FASTAs in
+# folders by clade); test_tools.py and run_tools.py build that layout from
+# data/taxonomy.tsv.
+#
+# Create:  mamba env create -f environments/orthophy_environment.yml
 name: orthophy
 channels:
   - conda-forge
   - bioconda
   - defaults
 dependencies:
+  # Pinned: OrthoPhy.py imports distutils, which was removed in Python 3.12.
   - python=3.10
-  - perl                 # several OrthoPhy helper scripts are Perl
-  - blast
-  - diamond
-  - mafft
-  - trimal
-  - fasttree
-  - raxml
-  - biopython
+
+  # Python packages — every third-party import in OrthoPhy.py and bin/*.py
+  - biopython           # Bio
   - numpy
-  - git
+  - scipy
+  - pandas
+  - dask
+  - tqdm                # bin/reconstruct_tree.py
+
+  # External programs OrthoPhy calls
+  - blast               # homology search
+  - diamond             # homology search
+  - mcl                 # clustering; OrthoPhy sweeps the inflation value
+  - mafft               # multiple sequence alignment
+  - trimal              # alignment filtering (skipped with --no_filtering)
+  - fasttree            # gene tree reconstruction
+  - iqtree              # used by --accurate for the concatenated tree
+  - raxml
+
+  # Optional --hgt prediction (IslandPath-DIMOB) needs Perl and BioPerl.
+  # This project does not use --hgt.
+  - perl
