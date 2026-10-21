@@ -46,6 +46,15 @@ The tool FastOMA requires the OMA Orthology Database to be installed to successf
 cd data
 wget https://omabrowser.org/All/LUCA.h5 &
 ```
+For more information on how to install each tool, or on how each tool functions follow the links below:
+
+OrthoFinderV3	https://github.com/davidemms/orthofinder 
+
+BroccoliV2	https://github.com/rderelle/Broccoli 
+
+FastOMA	https://github.com/DessimozLab/fastoma 
+
+OrthoPhy	https://github.com/tmakwtnb/OrthoPhy 
 
 # Testing Tools with Practice Dataset
 
