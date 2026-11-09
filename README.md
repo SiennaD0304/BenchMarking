@@ -15,7 +15,7 @@ If Mamba is not supported or unable to be installed all environments can be crea
 Once Mamba is installed clone the repo below. 
 ```
 git clone https://github.com/SiennaD0304/BenchMarking.git 
-cd ortho-benchmark
+cd BenchMarking
 ```
 
 Create Conda environments:
